@@ -2,7 +2,7 @@
 /*
 Plugin Name: Portfolios
 Description: Extend the Post Grid system in your Theme Blvd theme to a Portfolio custom post type.
-Version: 1.0.1
+Version: 1.1.0
 Author: Theme Blvd
 Author URI: http://themeblvd.com
 License: GPL2
@@ -25,7 +25,7 @@ License: GPL2
 
 */
 
-define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.0.1' );
+define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.1.0' );
 define( 'TB_PORTFOLIOS_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_URI', plugins_url( '' , __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -64,37 +64,32 @@ class Theme_Blvd_Portfolios {
      */
     private function __construct() {
 
+        // Localization
+        add_action( 'init', array( $this, 'textdomain' ) );
+
     	// Setup CPT & taxonomies
     	add_action( 'init', array( $this, 'register' ) );
-    	add_action( 'admin_enqueue_scripts', array( $this, 'menu_icon' ) );
 
-        // Theme Blvd integration
-        add_filter( 'themeblvd_core_elements', array( $this, 'builder_options' ) );
-        add_filter( 'themeblvd_portfolio_module_options', array( $this, 'portfolio_module_options' ) );
-
-        add_filter( 'themeblvd_posts_args', array( $this, 'query_args' ), 9, 2 );
-        add_filter( 'themeblvd_post_slider_args', array( $this, 'query_args' ), 9, 2 );
-        add_filter( 'themeblvd_slider_auto_args', array( $this, 'query_args' ), 9, 2 );
-        add_filter( 'themeblvd_portfolio_module_args', array( $this, 'query_args' ), 9, 2 );
-
-        add_filter( 'themeblvd_template_list_query', array( $this, 'page_template_query' ), 10, 3 );
-        add_filter( 'themeblvd_template_grid_query', array( $this, 'page_template_query' ), 10, 3 );
-
-        add_filter( 'themeblvd_post_meta', array( $this, 'post_meta' ) );
-        add_filter( 'themeblvd_meta_options_tb_post_options', array( $this, 'post_meta_options' ) );
-        add_filter( 'themeblvd_pto_options', array( $this, 'pto_options' ) );
-
-        add_filter( 'themeblvd_meta', array( $this, 'meta' ), 10, 6 );
-        add_filter( 'themeblvd_pre_breadcrumb_parts', array( $this, 'breadcrumbs' ), 10, 2 );
-        add_filter( 'the_tags', array( $this, 'tags' ), 10, 4 );
-        add_filter( 'themeblvd_template_parts', array( $this, 'template_parts' ) );
-
+        // Theme Blvd Integration
+        if ( defined('TB_FRAMEWORK_VERSION') ) {
+            add_action( 'after_setup_theme', array( $this, 'themeblvd_init' ) );
+        }
 
     }
 
     /*--------------------------------------------*/
     /* Setup the post type and taxonomies
     /*--------------------------------------------*/
+
+    /**
+     * Plugin text domain for localization.
+     * GlotPress-ready.
+     *
+     * @since 1.1.0
+     */
+    public function textdomain() {
+        load_plugin_textdomain('portfolios');
+    }
 
     /**
      * Register post type
@@ -105,17 +100,17 @@ class Theme_Blvd_Portfolios {
 
         // Add Portfolio Item custom post type
         $labels = apply_filters( 'themeblvd_portfolio_item_cpt_labels', array(
-			'name' 					=> __( 'Portfolio Items', 'themeblvd_portfolios' ),
-			'singular_name'			=> __( 'Portfolio Item', 'themeblvd_portfolios' ),
-			'add_new'				=> __( 'Add New Item', 'themeblvd_portfolios' ),
-			'add_new_item'			=> __( 'Add New Portfolio Item', 'themeblvd_portfolios' ),
-			'edit_item'				=> __( 'Edit Item', 'themeblvd_portfolios' ),
-			'new_item'				=> __( 'New Portfolio Item', 'themeblvd_portfolios' ),
-			'all_items'				=> __( 'Portfolio Items', 'themeblvd_portfolios' ),
-			'view_item'				=> __( 'View Item', 'themeblvd_portfolios' ),
-			'search_items'			=> __( 'Search Portfolio Items', 'themeblvd_portfolios' ),
-			'not_found'				=> __( 'No portfolio items found', 'themeblvd_portfolios' ),
-			'not_found_in_trash'	=> __( 'No portfolio items found in Trash', 'themeblvd_portfolios' ),
+			'name' 					=> __( 'Portfolio Items', 'portfolios' ),
+			'singular_name'			=> __( 'Portfolio Item', 'portfolios' ),
+			'add_new'				=> __( 'Add New Item', 'portfolios' ),
+			'add_new_item'			=> __( 'Add New Portfolio Item', 'portfolios' ),
+			'edit_item'				=> __( 'Edit Item', 'portfolios' ),
+			'new_item'				=> __( 'New Portfolio Item', 'portfolios' ),
+			'all_items'				=> __( 'Portfolio Items', 'portfolios' ),
+			'view_item'				=> __( 'View Item', 'portfolios' ),
+			'search_items'			=> __( 'Search Portfolio Items', 'portfolios' ),
+			'not_found'				=> __( 'No portfolio items found', 'portfolios' ),
+			'not_found_in_trash'	=> __( 'No portfolio items found in Trash', 'portfolios' ),
 			'menu_name'				=> __( 'Portfolios' )
 		));
 
@@ -130,7 +125,7 @@ class Theme_Blvd_Portfolios {
 			'capability_type'		=> 'post',
 			'has_archive'			=> true,
 			'hierarchical'			=> false,
-			'menu_icon'				=> TB_PORTFOLIOS_PLUGIN_URI . '/assets/images/menu-icon.png',
+			'menu_icon'				=> 'dashicons-portfolio', // overridden with CSS if using Theme Blvd theme
 			'menu_position'			=> null,
 			'supports'				=> array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments' ),
 			'taxonomies'			=> array( 'tb_portfolio', 'tb_portfolio_tag' )
@@ -140,17 +135,17 @@ class Theme_Blvd_Portfolios {
 
   		// Add "Portfolio" taxonomy (i.e. Items are grouped into portfolios)
 		$labels = apply_filters( 'themeblvd_portfolio_tax_labels', array(
-			'name'              => __( 'Portfolios', 'themeblvd_portfolios' ),
-			'singular_name'     => __( 'Portfolio', 'themeblvd_portfolios' ),
-			'search_items'      => __( 'Search Portfolios', 'themeblvd_portfolios' ),
-			'all_items'         => __( 'All Portfolios', 'themeblvd_portfolios' ),
-			'parent_item'       => __( 'Parent Portfolio', 'themeblvd_portfolios' ),
-			'parent_item_colon' => __( 'Parent Portfolio:', 'themeblvd_portfolios' ),
-			'edit_item'         => __( 'Edit Portfolio', 'themeblvd_portfolios' ),
-			'update_item'       => __( 'Update Portfolio', 'themeblvd_portfolios' ),
-			'add_new_item'      => __( 'Add New Portfolio', 'themeblvd_portfolios' ),
-			'new_item_name'     => __( 'New Portfolio Name', 'themeblvd_portfolios' ),
-			'menu_name'         => __( 'Portfolios', 'themeblvd_portfolios' )
+			'name'              => __( 'Portfolios', 'portfolios' ),
+			'singular_name'     => __( 'Portfolio', 'portfolios' ),
+			'search_items'      => __( 'Search Portfolios', 'portfolios' ),
+			'all_items'         => __( 'All Portfolios', 'portfolios' ),
+			'parent_item'       => __( 'Parent Portfolio', 'portfolios' ),
+			'parent_item_colon' => __( 'Parent Portfolio:', 'portfolios' ),
+			'edit_item'         => __( 'Edit Portfolio', 'portfolios' ),
+			'update_item'       => __( 'Update Portfolio', 'portfolios' ),
+			'add_new_item'      => __( 'Add New Portfolio', 'portfolios' ),
+			'new_item_name'     => __( 'New Portfolio Name', 'portfolios' ),
+			'menu_name'         => __( 'Portfolios', 'portfolios' )
 		));
 
 		$args = apply_filters( 'themeblvd_portfolio_tag_tax_args', array(
@@ -166,15 +161,15 @@ class Theme_Blvd_Portfolios {
 
         // Add "Portfolio Tag" taxonomy
         $labels = apply_filters( 'themeblvd_portfolio_tag_tax_labels', array(
-            'name'              => __( 'Portfolio Tags', 'themeblvd_portfolios' ),
-            'singular_name'     => __( 'Portfolio Tag', 'themeblvd_portfolios' ),
-            'search_items'      => __( 'Search Portfolio Tags', 'themeblvd_portfolios' ),
-            'all_items'         => __( 'All Portfolio Tags', 'themeblvd_portfolios' ),
-            'edit_item'         => __( 'Edit Portfolio Tag', 'themeblvd_portfolios' ),
-            'update_item'       => __( 'Update Portfolio Tag', 'themeblvd_portfolios' ),
-            'add_new_item'      => __( 'Add New Portfolio Tag', 'themeblvd_portfolios' ),
-            'new_item_name'     => __( 'New Portfolio Tag Name', 'themeblvd_portfolios' ),
-            'menu_name'         => __( 'Portfolio Tags', 'themeblvd_portfolios' )
+            'name'              => __( 'Portfolio Tags', 'portfolios' ),
+            'singular_name'     => __( 'Portfolio Tag', 'portfolios' ),
+            'search_items'      => __( 'Search Portfolio Tags', 'portfolios' ),
+            'all_items'         => __( 'All Portfolio Tags', 'portfolios' ),
+            'edit_item'         => __( 'Edit Portfolio Tag', 'portfolios' ),
+            'update_item'       => __( 'Update Portfolio Tag', 'portfolios' ),
+            'add_new_item'      => __( 'Add New Portfolio Tag', 'portfolios' ),
+            'new_item_name'     => __( 'New Portfolio Tag Name', 'portfolios' ),
+            'menu_name'         => __( 'Portfolio Tags', 'portfolios' )
         ));
 
         $args = apply_filters( 'themeblvd_portfolio_tag_tax_args', array(
@@ -194,13 +189,49 @@ class Theme_Blvd_Portfolios {
 
      }
 
+    /*--------------------------------------------*/
+    /* Initiate Theme Blvd integration
+    /*--------------------------------------------*/
+
     /**
-     * Add CSS file to all of WP admin for menu icon.
+     * Apply Theme Blvd specific actions and filters.
      *
-     * @since 1.0.0
+     * @since 1.0.1
      */
-    public function menu_icon() {
-        wp_enqueue_style( 'themeblvd_portfolios_icon', TB_PORTFOLIOS_PLUGIN_URI . '/assets/css/icons.css' );
+    public function themeblvd_init() {
+
+        add_filter( 'themeblvd_elements', array( $this, 'builder_options' ) );
+        add_filter( 'themeblvd_portfolio_module_options', array( $this, 'portfolio_module_options' ) );
+
+        add_filter( 'themeblvd_posts_args', array( $this, 'query_args' ), 9, 2 );
+        add_filter( 'themeblvd_post_slider_args', array( $this, 'query_args' ), 9, 2 );
+        add_filter( 'themeblvd_slider_auto_args', array( $this, 'query_args' ), 9, 2 );
+        add_filter( 'themeblvd_portfolio_module_args', array( $this, 'query_args' ), 9, 2 );
+
+        add_filter( 'themeblvd_template_list_query', array( $this, 'page_template_query' ), 10, 3 );
+        add_filter( 'themeblvd_template_grid_query', array( $this, 'page_template_query' ), 10, 3 );
+
+        add_filter( 'themeblvd_post_meta', array( $this, 'post_meta' ) );
+        add_filter( 'themeblvd_meta_options_tb_post_options', array( $this, 'post_meta_options' ) );
+        add_filter( 'themeblvd_pto_options', array( $this, 'pto_options' ) );
+
+        if ( version_compare(TB_FRAMEWORK_VERSION, '2.5.0', '>=') ) { // requires framework 2.5+
+            add_filter( 'themeblvd_formatted_options', array( $this, 'theme_options' ) );
+            add_filter( 'themeblvd_theme_mode_override', array( $this, 'archive_mode' ), 10, 2 );
+            add_action( 'themeblvd_archive_info', array( $this, 'archive_info' ) );
+        }
+
+        // add_filter( 'themeblvd_locals', array( $this, 'locals' ) );
+        add_action( 'themeblvd_sub_meta_items', array( $this, 'sub_meta'), 11 ); // requires framework 2.5+
+        add_filter( 'themeblvd_pre_breadcrumb_parts', array( $this, 'breadcrumbs' ), 10, 2 );
+
+        // @deprecated
+        if ( version_compare(TB_FRAMEWORK_VERSION, '2.5.0', '<') ) {
+            add_filter( 'the_tags', array( $this, 'tags' ), 10, 4 );
+            add_filter( 'themeblvd_template_parts', array( $this, 'template_parts' ) );
+            add_filter( 'themeblvd_meta', array( $this, 'meta' ), 10, 6 );
+        }
+
     }
 
     /*--------------------------------------------*/
@@ -233,6 +264,12 @@ class Theme_Blvd_Portfolios {
             // posts from.
             if ( isset( $options['source']['options'] ) ) {
                 $options['source']['options'] = $this->set_sorce( $options['source']['options'] );
+            }
+
+            // Add additional filering options
+            if ( isset( $options['filter']['options'] ) ) {
+                $options['filter']['options']['portfolio'] = __('Filtered by portfolio', 'portfolios');
+                $options['filter']['options']['portfolio_tag'] = __('Filtered by portfolio tag', 'portfolios');
             }
 
             // Set triggers on other options so they
@@ -283,13 +320,19 @@ class Theme_Blvd_Portfolios {
      */
     public function get_builder_items() {
          $items = array(
+            'mini_post_list',
+            'mini_post_grid',
+            'post_grid',
+            'post_list',
+            'post_showcase',
+            'post_slider',
+            'post_slider_popout',
+
+            // @deprecated
             'post_grid_paginated',
             'post_grid_slider',
-            'post_grid',
             'post_list_paginated',
-            'post_list_slider',
-            'post_list',
-            'post_slider'
+            'post_list_slider'
         );
         return apply_filters( 'themeblvd_portfolios_builder_items', $items );
     }
@@ -312,9 +355,9 @@ class Theme_Blvd_Portfolios {
 
             $new_selections[$key] = $value;
 
-            if( $key == 'tag' ) {
-                $new_selections['portfolio'] = __('Portfolio', 'themeblvd_portfolios');
-                $new_selections['portfolio-tag'] = __('Portfolio Tag', 'themeblvd_portfolios');
+            if ( $key == 'tag' ) {
+                $new_selections['portfolio'] = __('Portfolio', 'portfolios');
+                $new_selections['portfolio-tag'] = __('Portfolio Tag', 'portfolios');
             }
 
         }
@@ -367,8 +410,8 @@ class Theme_Blvd_Portfolios {
                 // Add option to select portfolios
                 $new_options['portfolio'] = array(
                     'id'        => 'portfolio',
-                    'name'      => __( 'Portfolio', 'themeblvd_portfolios' ),
-                    'desc'      => __( 'Enter a portfolio slug, or a comma separated list of portfolio slugs, to pull posts from. Leave blank to pull all portfolio items.', 'themeblvd_portfolios' ),
+                    'name'      => __( 'Portfolio', 'portfolios' ),
+                    'desc'      => __( 'Enter a portfolio slug, or a comma separated list of portfolio slugs, to pull posts from. Leave blank to pull all portfolio items.', 'portfolios' ),
                     'type'      => 'text',
                     'class'     => 'hide receiver receiver-portfolio'
                 );
@@ -376,8 +419,8 @@ class Theme_Blvd_Portfolios {
                 // Add option to input portfolio tag
                 $new_options['portfolio_tag'] = array(
                     'id'        => 'portfolio_tag',
-                    'name'      => __( 'Portfolio Tag', 'themeblvd_portfolios' ),
-                    'desc'      => __( 'Enter a single portfolio tag, or a comma separated list of portfolio tags, to pull posts from.', 'themeblvd_portfolios' ),
+                    'name'      => __( 'Portfolio Tag', 'portfolios' ),
+                    'desc'      => __( 'Enter a single portfolio tag, or a comma separated list of portfolio tags, to pull posts from.', 'portfolios' ),
                     'type'      => 'text',
                     'class'     => 'hide receiver receiver-portfolio-tag'
                 );
@@ -438,15 +481,15 @@ class Theme_Blvd_Portfolios {
 
                 $new_options['portfolio'] = array(
                     'id'        => 'portfolio',
-                    'name'      => __( 'portfolio', 'themeblvd_pto' ),
-                    'desc'      => __( 'Portfolio slugs to include.<br>Ex: my-portfolio<br>Ex: my-portfolio-1, my-portfolio-2', 'themeblvd_pto' ),
+                    'name'      => __( 'portfolio', 'portfolios' ),
+                    'desc'      => __( 'Portfolio slugs to include.<br>Ex: my-portfolio<br>Ex: my-portfolio-1, my-portfolio-2', 'portfolios' ),
                     'type'      => 'text'
                 );
 
                 $new_options['portfolio_tag'] = array(
                     'id'        => 'portfolio_tag',
-                    'name'      => __( 'portfolio_tag', 'themeblvd_pto' ),
-                    'desc'      => __( 'Portfolio tags to include.<br>Ex: my-tag<br>Ex: my-tag-1, my-tag-2', 'themeblvd_pto' ),
+                    'name'      => __( 'portfolio_tag', 'portfolios' ),
+                    'desc'      => __( 'Portfolio tags to include.<br>Ex: my-tag<br>Ex: my-tag-1, my-tag-2', 'portfolios' ),
                     'type'      => 'text'
                 );
 
@@ -455,6 +498,112 @@ class Theme_Blvd_Portfolios {
         }
 
         return $new_options;
+
+    }
+
+    /**
+     * Adjustments to Theme Options page. Add "Portfolio"
+     * section just after "Archives" section. Only applies
+     * to framework 2.5+ themes.
+     *
+     * @since 1.1.0
+     */
+    public function theme_options( $options ) {
+
+        $new_options = array();
+
+        foreach ( $options as $key => $option ) {
+
+            $new_options[$key] = $option;
+
+            if ( $key == 'end_section_archives' ) {
+
+                $new_options['section_start_portfolios'] = array(
+                    'name' => __('Portfolios', 'portfolios'),
+                    'type' => 'section_start'
+                );
+
+                $new_options['portfolio_mode'] = array(
+                    'name'      => __('Post Display', 'portfolios'),
+                    'desc'      => __('When viewing a portfolio or portfolio tag archive, how do you want the posts displayed?', 'portfolios'),
+                    'id'        => 'portfolio_mode',
+                    'std'       => 'showcase',
+                    'type'      => 'select',
+                    'options'   => array(
+                        'blog'      => __('Blog', 'portfolios'),
+                        'list'      => __('List', 'portfolios'),
+                        'grid'      => __('Grid', 'portfolios'),
+                        'showcase'  => __('Showcase', 'portfolios'),
+                    )
+                );
+
+                $new_options['portfolio_info'] = array(
+                    'name'      => __('Portfolio Info Boxes', 'portfolios'),
+                    'desc'      => __('When viewing a portfolio archive, would you like to show an info box at the top that contains the title and description of the current portfolio?', 'portfolios'),
+                    'id'        => 'portfolio_info',
+                    'std'       => 'hide',
+                    'type'      => 'select',
+                    'options'   => array(
+                        'show' => __('Yes, show info boxes', 'portfolios'),
+                        'hide' => __('No, hide info boxes', 'portfolios')
+                    )
+                );
+
+                $new_options['portfolio_tag_info'] = array(
+                    'name'      => __('Portfolio Tag Info Boxes', 'portfolios'),
+                    'desc'      => __('When viewing a portfolio tag archive, would you like to show an info box at the top that contains the title and description of the current portfolio?', 'portfolios'),
+                    'id'        => 'portfolio_tag_info',
+                    'std'       => 'hide',
+                    'type'      => 'select',
+                    'options'   => array(
+                        'show' => __('Yes, show info boxes', 'portfolios'),
+                        'hide' => __('No, hide info boxes', 'portfolios')
+                    )
+                );
+
+                $new_options['section_end_portfolios'] = array(
+                    'type' => 'section_end'
+                );
+
+            }
+
+        }
+
+        return $new_options;
+    }
+
+    /**
+     * Change post display mode for portfolio and portfolio
+     * tag archive pages, based on theme options additions.
+     *
+     * @since 1.1.0
+     */
+    public function archive_mode( $mode, $q ) {
+
+        if ( $q->is_tax('portfolio') || $q->is_tax('portfolio_tag') ) {
+
+            $mode = themeblvd_get_option('portfolio_mode', null, 'showcase');
+
+            if ( ! $mode || $mode == 'default' ) {
+                $mode = themeblvd_get_option( 'archive_mode', null, 'blog' );
+            }
+
+        }
+
+        return $mode;
+    }
+
+    /**
+     * Display info box at the top of portfolio and portfolio
+     * tag archive pages, based on theme options additions.
+     *
+     * @since 1.1.0
+     */
+    public function archive_info() {
+
+        if ( ( is_tax('portfolio') && themeblvd_get_option('portfolio_info') == 'show' ) || ( is_tax('portfolio_tag') && themeblvd_get_option('portfolio_tag_info') == 'show' ) ) {
+            themeblvd_tax_info();
+        }
 
     }
 
@@ -514,8 +663,8 @@ class Theme_Blvd_Portfolios {
 
     /**
      * On the frontend of the site, filter the query
-     * args for post lists and post grids to include
-     * our portfolio options.
+     * args for items that query posts, for our portfolio
+     * options.
      *
      * @since 1.0.0
      */
@@ -527,42 +676,49 @@ class Theme_Blvd_Portfolios {
             $source = $args['source'];
         }
 
-        if ( 'portfolio' == $source || 'portfolio-tag' == $source || ! $source ) {
-
-            $query['tax_query'] = array();
+        if ( $source == 'portfolio' || $source == 'portfolio-tag' || ! $source ) {
 
             // Portfolios
-            if ( 'portfolio' == $source || ( ! $source && ! empty( $args['portfolio'] ) ) ) {
+            if ( $source == 'portfolio' || ( ! $source && ! empty( $args['portfolio'] ) ) ) {
 
                 $query['post_type'] = 'portfolio_item';
 
-                $portfolios = str_replace(' ', '', $args['portfolio'] );
-                $portfolios = explode( ',', $portfolios );
+                if ( ! empty( $args['portfolio'] ) ) {
 
-                $query['tax_query'][] = array(
-                    'taxonomy'  => 'portfolio',
-                    'field'     => 'slug',
-                    'terms'     => $portfolios
-                );
+                    $portfolios = str_replace(' ', '', $args['portfolio'] );
+                    $portfolios = explode( ',', $portfolios );
+
+                    $query['tax_query'][] = array(
+                        'taxonomy'  => 'portfolio',
+                        'field'     => 'slug',
+                        'terms'     => $portfolios
+                    );
+
+                }
 
                 // Remove standard post taxomonies
                 unset( $query['categories'], $query['cat'], $query['category_name'] );
                 unset( $query['tag'] );
+
             }
 
             // Portfolio Tags
-            if ( 'portfolio-tag' == $source || ( ! $source && ! empty( $args['portfolio_tag'] ) ) ) {
+            if ( $source == 'portfolio-tag' || ( ! $source && ! empty( $args['portfolio_tag'] ) ) ) {
 
                 $query['post_type'] = 'portfolio_item';
 
-                $tags = str_replace(' ', '', $args['portfolio_tag'] );
-                $tags = explode( ',', $tags );
+                if ( ! empty( $args['portfolio_tag'] ) ) {
 
-                $query['tax_query'][] = array(
-                    'taxonomy'  => 'portfolio_tag',
-                    'field'     => 'slug',
-                    'terms'     => $tags
-                );
+                    $tags = str_replace(' ', '', $args['portfolio_tag'] );
+                    $tags = explode( ',', $tags );
+
+                    $query['tax_query'][] = array(
+                        'taxonomy'  => 'portfolio_tag',
+                        'field'     => 'slug',
+                        'terms'     => $tags
+                    );
+
+                }
 
                 // Remove standard post taxomonies
                 unset( $query['categories'], $query['cat'], $query['category_name'] );
@@ -577,6 +733,16 @@ class Theme_Blvd_Portfolios {
     /*--------------------------------------------*/
     /* Theme Blvd Frontend Integration
     /*--------------------------------------------*/
+
+    /**
+     * Frontend text strings
+     *
+     * @since 1.0.2
+     */
+    public function locals( $locals ) {
+        // ... @TODO Maybe do later if things get more complicated
+        return $locals;
+    }
 
     /**
      * Breadcrumbs
@@ -657,6 +823,43 @@ class Theme_Blvd_Portfolios {
         }
 
         return $tags;
+    }
+
+    /**
+     * Sub post meta
+     *
+     * @since 1.1.0
+     */
+    public function sub_meta() {
+
+        $taxos = apply_filters( 'themeblvd_portfolios_sub_meta_taxos', array( 'portfolio', 'portfolio_tag' ) );
+
+        foreach ( $taxos as $tax ) {
+
+            $terms = get_the_terms( get_the_ID(), $tax );
+
+            if ( $terms ) {
+
+                $tax_obj = get_taxonomy($tax);
+
+                printf( '<div class="tb-%1$s %1$s">', $tax );
+                printf( '<span class="title">%s:</span>', $tax_obj->labels->name );
+
+                $count = count($terms);
+                $i = 1;
+
+                foreach ( $terms as $term ) {
+                    printf( '<a href="%1$s" title="%2$s">%2$s</a>', get_term_link( $term->term_id, $tax ), $term->name );
+                    if ( $i < $count ) {
+                        echo ', ';
+                    }
+                    $i++;
+                }
+
+                echo '</div>';
+            }
+        }
+
     }
 
     /**

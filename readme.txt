@@ -2,7 +2,7 @@
 Author URI: http://www.themeblvd.com
 Contributors: themeblvd
 Tags: bundle, Theme Blvd, themeblvd, Jason Bobich, portfolios
-Stable Tag: 1.1.0
+Stable Tag: 1.1.1
 
 Adds a "Portfolio Item" custom post type with associated "Portfolio" and "Porfolio Tag" taxonomies.
 
@@ -64,6 +64,11 @@ add_action( 'after_setup_theme', 'my_portfolio_mods' );
 `
 
 == Changelog ==
+
+= 1.1.1 =
+
+* Fixed Theme Blvd integration hook, from last update.
+* Fixed post meta integration (for framework 2.4 themes).
 
 = 1.1.0 =
 

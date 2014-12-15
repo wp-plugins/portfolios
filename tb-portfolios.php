@@ -2,7 +2,7 @@
 /*
 Plugin Name: Portfolios
 Description: Extend the Post Grid system in your Theme Blvd theme to a Portfolio custom post type.
-Version: 1.1.0
+Version: 1.1.1
 Author: Theme Blvd
 Author URI: http://themeblvd.com
 License: GPL2
@@ -25,7 +25,7 @@ License: GPL2
 
 */
 
-define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.1.0' );
+define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.1.1' );
 define( 'TB_PORTFOLIOS_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_URI', plugins_url( '' , __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -71,9 +71,7 @@ class Theme_Blvd_Portfolios {
     	add_action( 'init', array( $this, 'register' ) );
 
         // Theme Blvd Integration
-        if ( defined('TB_FRAMEWORK_VERSION') ) {
-            add_action( 'after_setup_theme', array( $this, 'themeblvd_init' ) );
-        }
+        add_action( 'after_setup_theme', array( $this, 'themeblvd_init' ) );
 
     }
 
@@ -199,6 +197,10 @@ class Theme_Blvd_Portfolios {
      * @since 1.0.1
      */
     public function themeblvd_init() {
+
+        if ( ! defined('TB_FRAMEWORK_VERSION') ) {
+            return;
+        }
 
         add_filter( 'themeblvd_elements', array( $this, 'builder_options' ) );
         add_filter( 'themeblvd_portfolio_module_options', array( $this, 'portfolio_module_options' ) );
@@ -869,15 +871,17 @@ class Theme_Blvd_Portfolios {
      */
     public function meta( $output, $time, $author, $category, $comments, $sep ) {
 
-        if ( 'portfolio_item' == get_post_type() ) {
+        if ( get_post_type() == 'portfolio_item' ) {
 
-            $portfolio = get_the_term_list( get_the_id(), 'portfolio', '<span class="category"><i class="icon-reorder"></i> ', ', ', '</span>' );
-
-            if ( $portfolio ) {
-                $portfolio = $sep.$portfolio;
+            if ( $category ) {
+                $output = str_replace( $category, '', $output );
             }
 
-            $output = str_replace( $sep.$category, $portfolio, $output );
+            $portfolio = get_the_term_list( get_the_id(), 'portfolio', '<span class="category"><i class="icon-reorder fa fa-bars"></i> ', ', ', '</span>' ); // "icon-reorder" class for older themes
+
+            if ( $portfolio ) {
+                $output = str_replace( $author, $author.$sep.$portfolio, $output );
+            }
 
         }
 

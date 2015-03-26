@@ -2,7 +2,7 @@
 /*
 Plugin Name: Portfolios
 Description: Extend the Post Grid system in your Theme Blvd theme to a Portfolio custom post type.
-Version: 1.1.2
+Version: 1.1.3
 Author: Theme Blvd
 Author URI: http://themeblvd.com
 License: GPL2
@@ -25,7 +25,7 @@ License: GPL2
 
 */
 
-define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.1.2' );
+define( 'TB_PORTFOLIOS_PLUGIN_VERSION', '1.1.3' );
 define( 'TB_PORTFOLIOS_PLUGIN_DIR', dirname( __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_URI', plugins_url( '' , __FILE__ ) );
 define( 'TB_PORTFOLIOS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -214,6 +214,7 @@ class Theme_Blvd_Portfolios {
         add_filter( 'themeblvd_template_grid_query', array( $this, 'page_template_query' ), 10, 3 );
 
         add_filter( 'themeblvd_post_meta', array( $this, 'post_meta' ) );
+        add_filter( 'themeblvd_banner_meta', array( $this, 'post_meta' ) ); // only in framework 2.5+
         add_filter( 'themeblvd_meta_options_tb_post_options', array( $this, 'post_meta_options' ) );
         add_filter( 'themeblvd_pto_options', array( $this, 'pto_options' ) );
 
@@ -548,7 +549,7 @@ class Theme_Blvd_Portfolios {
                     'name'      => __('Portfolio Info Boxes', 'portfolios'),
                     'desc'      => __('When viewing a portfolio archive, would you like to show an info box at the top that contains the title and description of the current portfolio?', 'portfolios'),
                     'id'        => 'portfolio_info',
-                    'std'       => 'hide',
+                    'std'       => 'show',
                     'type'      => 'select',
                     'options'   => array(
                         'show' => __('Yes, show info boxes', 'portfolios'),
